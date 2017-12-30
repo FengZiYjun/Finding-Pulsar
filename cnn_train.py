@@ -8,6 +8,17 @@ import numpy as np
 	100-D data
 """
 
+# restore data from the 100d-chi2.fzy
+
+from sklearn.externals import joblib
+X, Y = joblib.load('100d-chi2.fzy')
+
+X = X.reshape([X.shape[0], 1, 100, 1])
+Y = Y.reshape([Y.shape[0], 1])
+
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=.2, random_state=0)
+
+
 def generate_batch(X, Y, n_examples, batch_size):
 	for batch_i in range(n_examples // batch_size):
 		# [batch_i * batch_size, batch_i * batch_size + batch_size]
@@ -104,22 +115,22 @@ loss = -tf.reduce_mean(tf_Y * tf.log(tf.clip_by_value(pred, 1e-11, 1.0)))
 train_step = tf.train.AdamOptimizer(1e-3).minimize(loss)
 
 y_pred = tf.argmax(pred, 1)
-bool_pred = tf.equal(tf.arg_max(tf_Y,1),y_pred)
-accuracy = tf.reduce_mean(tf.cast(bool_pred,tf.float32))
+bool_pred = tf.equal(tf.arg_max(tf_Y, 1), y_pred)
+accuracy = tf.reduce_mean(tf.cast(bool_pred, tf.float32))
 
 
-
+"""
 X = np.random.rand(BATCH_SIZE, 1, 100, 1)
 Y = np.random.rand(BATCH_SIZE, 1)
-
+"""
 
 with tf.Session() as sess:
     sess.run(tf.initialize_all_variables())
     for epoch in range(100):
-        for batch_xs, batch_ys in generate_batch(X, Y, Y.shape[0], BATCH_SIZE):
+        for batch_xs, batch_ys in generate_batch(X_train, y_train, y_train.shape[0], BATCH_SIZE):
             sess.run(train_step, feed_dict={tf_X:batch_xs, tf_Y:batch_ys})
         if(epoch % 1 == 0):
-            res = sess.run(accuracy, feed_dict={tf_X:X,tf_Y:Y})
+            res = sess.run(accuracy, feed_dict={tf_X:X_test,tf_Y:y_test})
             print(epoch, res)
 
 # saving models
