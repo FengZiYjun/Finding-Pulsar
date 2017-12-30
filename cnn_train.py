@@ -16,6 +16,7 @@ X, Y = joblib.load('100d-chi2.fzy')
 X = X.reshape([X.shape[0], 1, 100, 1])
 Y = Y.reshape([Y.shape[0], 1])
 
+from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=.2, random_state=0)
 
 
@@ -125,12 +126,18 @@ Y = np.random.rand(BATCH_SIZE, 1)
 """
 
 with tf.Session() as sess:
-    sess.run(tf.initialize_all_variables())
+    sess.run(tf.global_variables_initializer())
     for epoch in range(100):
         for batch_xs, batch_ys in generate_batch(X_train, y_train, y_train.shape[0], BATCH_SIZE):
             sess.run(train_step, feed_dict={tf_X:batch_xs, tf_Y:batch_ys})
         if(epoch % 1 == 0):
-            res = sess.run(accuracy, feed_dict={tf_X:X_test,tf_Y:y_test})
-            print(epoch, res)
+            randidx = np.random.randint(X_test.shape[0], size=32)
+            test_x = X_test[randidx, :]
+            test_y = y_test[randidx, :]
+            res = sess.run(accuracy, feed_dict={tf_X:test_x,tf_Y:test_y})
+            loss_res = sess.run(loss, feed_dict={tf_X: batch_xs, tf_Y:batch_ys})
+            #feat_map1 = sess.run(feature_map1, feed_dict={tf_X: batch_xs, tf_Y:batch_ys})
+            print(epoch, 'test accuracy', res)
+            print(epoch, 'training loss', loss_res)
 
 # saving models
