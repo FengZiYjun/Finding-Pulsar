@@ -499,7 +499,7 @@ class PFDFeatureExtractor(FeatureExtractor):
     
     # ****************************************************************************************************
     
-    def interp_rotate(self,arr, bins, zoomfact=10):
+    def f_rotate(self,arr, bins, zoomfact=10):
         """
         Return a sinc-interpolated array rotated by 'bins' places to the left.
         'bins' can be fractional and will be rounded to the closest

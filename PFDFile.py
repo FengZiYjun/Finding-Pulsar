@@ -205,11 +205,11 @@ class PFD():
         # if not self.__dict__.has_key('subdelays'):
         if 'subdelays' not in self.__dict__:
             self.dedisperse()
-
+        
+        self.sumprof = self.profs.sum(0).sum(0) # add
         normprof = self.sumprof - min(self.sumprof)
 
         s = normprof / mean(normprof)
-
 
         return self.scale(s)
 
@@ -264,7 +264,7 @@ class PFD():
         return varprof
         # ****************************************************************************************************
 
-    def dedisperse(self, DM=None, interp=0):
+    def dedisperse(self, DM=None, interp=1):
         """
         Rotate (internally) the profiles so that they are de-dispersed
         at a dispersion measure of DM.  Use FFT-based interpolation if

@@ -86,5 +86,14 @@ def main():
 	train.train(X_train, y_train, clf, 'GradientBoosting')
 	tain.test(X_test, y_test, 'GradientBoosting')
 
+	from sklearn.ensemble import AdaBoostClassifier
+	from sklearn.tree import DecisionTreeClassifier
+	bdt = AdaBoostClassifier(DecisionTreeClassifier(max_depth=3), algorithm="SAMME", n_estimators=200)
+	train.train(X_train, y_train, bdt, 'AdaBoost')
+	tain.test(X_test, y_test, 'AdaBoost')
+
+	from sklearn.neural_network import MLPClassifier
+	MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(8, 8, 8), random_state=1)
+
 
 main()

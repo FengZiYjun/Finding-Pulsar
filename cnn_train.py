@@ -45,17 +45,18 @@ STRIDE1_SHAPE = [1, 1, 1, 1]
 POOL1_KSIZE = [1, 1, 5, 1]
 POOL1_STRIDE = [1, 1, 2, 1]
 
-W2_SHAPE = [1, 3, 3, 1]
-B2_SHAPE = [1, 1, 50, 1]
+# filter: [filter_height, filter_width, in_channels, out_channels]
+W2_SHAPE = [1, 3, 3, 6]
+B2_SHAPE = [1, 1, 50, 6]
 
 STRIDE2_SHAPE = [1, 1, 1, 1]
 POOL2_KSIZE = [1, 1, 3, 1]
 POOL2_STRIDE = [1, 1, 2, 1]
 
-FC_W_SHAPE = [25, 10]
-FC_B_SHAPE = [10]
-OUT_W_SHAPE = [10, 2]
-OUT_B_SHAPE = [2]
+FC_W_SHAPE = [144, 12]
+FC_B_SHAPE = [12]
+OUT_W_SHAPE = [12, 1]
+OUT_B_SHAPE = [1]
 
 # 输入层
 tf_X = tf.placeholder(tf.float32, INPUT_X_SHAPE)
@@ -66,34 +67,47 @@ tf_Y = tf.placeholder(tf.float32, INPUT_Y_SHAPE)
 filter_w1 = tf.Variable(tf.random_normal(W1_SHAPE))
 filter_b1 = tf.Variable(tf.random_normal(B1_SHAPE))
 
-# (None, BATCH, 100, 1) ---> (None, 1, 100, 3)
+# [BATCH_SIZE, 1, 100, 1] ---> (1, 1, 100, 3)
 conv1 = tf.nn.conv2d(tf_X, filter_w1, strides=STRIDE1_SHAPE, padding='SAME')
 
 feature_map1 = tf.nn.relu(conv1 + filter_b1)
 
 # 池化层
-# (None, 1, 100, 3)--->(None, 1, 50, 3)
+# (1, 1, 100, 3)--->(1, 1, 50, 3)
 pool1 = tf.nn.max_pool(feature_map1, ksize=POOL1_KSIZE, strides=POOL1_STRIDE, padding='SAME')
 
 
-# 卷积层+激活层
-# (None, 3, 3, 1)
+# [filter_height, filter_width, in_channels, out_channels]
+# (1, 3, 3, 6)
 filter_w2 = tf.Variable(tf.random_normal(W2_SHAPE))
 filter_b2 =  tf.Variable(tf.random_normal(B2_SHAPE))
 
-# (None, 1, 50, 3) --->(None,1 ,50, 1)
-conv = tf.nn.conv2d(pool1, filter_w2, strides=STRIDE2_SHAPE, padding='SAME')
+# (1, 1, 50, 3) --->(1, 1 ,50, 6)
+conv2 = tf.nn.conv2d(pool1, filter_w2, strides=STRIDE2_SHAPE, padding='SAME')
 
-feature_map2 = tf.nn.relu(conv + filter_b2)
+feature_map2 = tf.nn.relu(conv2 + filter_b2)
 
 # 池化层
-# (None,1 ,50, 1) ---> (None, 1, 25, 1)
+# (1, 1 ,50, 6) ---> (1, 1, 25, 6)
 pool2 = tf.nn.max_pool(feature_map2, ksize=POOL2_KSIZE, strides=POOL2_STRIDE, padding='SAME')
 
 
+# filter: [filter_height, filter_width, in_channels, out_channels]
+# (1, 3, 6, 12)
+filter_w3 = tf.Variable(tf.random_normal([1,3,6,12]))
+filter_b3 = tf.Variable(tf.random_normal([1,1,25,6]))
+
+# (1, 1, 25, 6) ---> (1, 1, 25, 12)
+conv3 = tf.nn.conv2d(pool2, filter_w3, strides=[1,1,1,1], padding='SAME')
+
+feature_map3 = tf.nn.relu(conv3 + filter_b3)
+
+# (1, 1, 25, 12)  ---> (1, 1, 12, 12)
+pool3 = tf.nn.max_pool(feature_map3, ksize=[1,1,3,1], strides=[1,1,2,1], padding='SAME')
+
 # 将特征图进行展开
-# (1, 25)
-max_pool2_flat = tf.reshape(pool2, [-1, 5*5])
+# (1, 144)
+max_pool2_flat = tf.reshape(feature_map3, [-1, 12*12])
 
 
 # 全连接层
@@ -110,14 +124,15 @@ pred = tf.nn.softmax(tf.matmul(fc_out1, out_w1) + out_b1)
 
 #开始训练
 
-loss = -tf.reduce_mean(tf_Y * tf.log(tf.clip_by_value(pred, 1e-11, 1.0)))
+#loss = -tf.reduce_mean(tf_Y * tf.log(tf.clip_by_value(pred, 1e-11, 1.0)))
+loss = tf.square(tf_Y - tf.clip_by_value(pred, 1e-11, 1.0))
 
 # Adam优化算法：是一个寻找全局最优点的优化算法，引入了二次方梯度校正。
 # 相比于基础SGD算法，1.不容易陷于局部优点。2.速度更快
 train_step = tf.train.AdamOptimizer(1e-3).minimize(loss)
 
 y_pred = tf.argmax(pred, 1)
-bool_pred = tf.equal(tf.argmax(tf_Y, 1), y_pred)
+bool_pred = tf.equal(tf.argmax(tf_Y, 1), tf.argmax(pred, 1))
 accuracy = tf.reduce_mean(tf.cast(bool_pred, tf.float32))
 
 

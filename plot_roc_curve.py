@@ -17,8 +17,8 @@ def plot_roc_curve(y_test, y_score):
 	roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
 
 	plt.figure()
-	plt.plot(fpr[2], tpr[2], color='darkorange',
-	          label='ROC curve (area = %0.2f)' % roc_auc[2])
+	# change key 2 ---> "micro"
+	plt.plot(fpr["micro"], tpr["micro"], color='darkorange', label='ROC curve (area = %0.2f)' % roc_auc["micro"])
 	plt.plot([0, 1], [0, 1], color='navy', linestyle='--')
 	plt.xlim([0.0, 1.0])
 	plt.ylim([0.0, 1.05])
