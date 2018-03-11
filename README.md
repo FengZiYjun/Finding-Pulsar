@@ -3,12 +3,12 @@
 ## Abstract
 In this project, we are going to explore the pattern of pulsars which differentiates them from the non-pulsars in a large dataset. Statistical methods are used to illustrate the overall features of each data sample, followed by typical machine learning techniques which fit the pattern with powerful models, and the deep learning method as a convenient tool to deal with complicated features. This model achieves satisfying performance in the test set.
 
-![](./report/1.png)
-![](./report/2.png)
-![](./report/3.png)
-![](./report/4.png)
-![](./report/5.png)
-![](./report/6.png)
+![](/report/1.PNG)
+![](/report/2.PNG)
+![](/report/3.PNG)
+![](/report/4.PNG)
+![](/report/5.PNG)
+![](/report/6.PNG)
 
 ## Problem Analysis
 There are three different-source pulsar datasets: 
